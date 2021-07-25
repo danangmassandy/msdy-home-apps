@@ -3,6 +3,9 @@
 // disable debug mode for serial connection to ATmega328p
 //#define APP_DEBUG_MODE = 1
 
+// Define to which pin of the Arduino the output of the LM35 is connected:
+#define lm35Pin A0
+
 // SERVO
 const int SERVO_PIN = 9;
 const int SERVO_INITIAL_ANGLE = 90;
@@ -32,12 +35,20 @@ void debugPrint(char c) {
 #endif    
 }
 
+void serialPrintln(String str) {
+  Serial.println(str);
+}
+
 void setup() {
   // init serial connection
   Serial.begin(115200);
   // connect to SERVO motor
   myServo.attach(SERVO_PIN);
   myServo.write(myServoAngle);
+
+  // Set the reference voltage for analog input to the built-in 1.1 V reference:
+  analogReference(INTERNAL);
+  
   debugPrintln("Initialization complete");
 }
 
@@ -63,7 +74,11 @@ void processCmd(String cmd) {
       debugPrintln("Rotate manual val to " + rotateVal);
       setServoRotation(rotateVal.toInt());
     }
-  }
+  } else if (cmd.indexOf("status") != -1) {
+    serialPrintln("status OK");
+  } else if (cmd.indexOf("temp") != -1) {
+    serialPrintln(String(getTempValue()));
+  } 
 }
 
 void feedMyPetOnce() {
@@ -92,4 +107,22 @@ void setServoRotation(int val) {
   myServoAngle = val;
   myServo.write(myServoAngle);
   delay(SERVO_MOVE_DELAY_1);
+}
+
+float readTempValue() {
+  // Get a reading from the temperature sensor:
+  int reading = analogRead(lm35Pin);
+
+  // Convert the reading into voltage:
+  float voltage = reading * (1100 / 1024.0);
+  // Convert the voltage into the temperature in degree Celsius:
+  float temperature = voltage / 10;
+  return temperature;
+}
+
+float getTempValue() {
+  // read 3 times and return the last reading
+  readTempValue();
+  readTempValue();
+  return readTempValue();
 }

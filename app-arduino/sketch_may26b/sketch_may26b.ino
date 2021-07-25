@@ -47,6 +47,8 @@ void debugPrint(char c) {
 
 void setup() {
   Serial.begin(115200);
+  // set reading timeout to 3s
+  Serial.setTimeout(3000);
   delay(1000);
   // Configures static IP address
   if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
@@ -77,6 +79,7 @@ void loop() {
     String adrAction = "";
     String adrValue1 = "";
     String adrValue2 = "";
+    bool hasResponse = false;
     while (client.connected() && currentTime - previousTime <= timeoutTime) { // loop while the client's connected
       currentTime = millis();         
       if (client.available()) {             // if there's bytes to read from the client,
@@ -87,15 +90,6 @@ void loop() {
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() == 0) {
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/plain");
-            client.println("Connection: close");
-            client.println();
-
-            client.println("OK");
-            
-            // The HTTP response ends with another blank line
-            client.println();
             // Break out of the while loop
             break;
           } else {
@@ -122,15 +116,43 @@ void loop() {
         }
       }
     }
+
+    // cmd process is sync if it has response
+    bool shouldProcessSync = cmdActionHasResponse(adrAction);
+    if (shouldProcessSync) {
+      String resp = processAdrActionWithResponse(adrAction, adrValue1, adrValue2);
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-type:text/plain");
+      client.println("Connection: close");
+      client.println();
+      client.println(resp);
+      // The HTTP response ends with another blank line
+      client.println();
+    } else {
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-type:text/plain");
+      client.println("Connection: close");
+      client.println();
+      
+      client.println("OK");
+      
+      // The HTTP response ends with another blank line
+      client.println();
+    }
+    
     // Close the connection
     client.stop();
     debugPrintln("Client disconnected.");
 
     // do processing here
-    if (adrAction != "") {
+    if (adrAction != "" && !shouldProcessSync) {
       processAdrAction(adrAction, adrValue1, adrValue2);
     }
   }
+}
+
+bool cmdActionHasResponse(String adrAction) {
+  return adrAction == "status" || adrAction == "readTemp";
 }
 
 void processAdrAction(String adrAction, String adrValue1, String adrValue2) {
@@ -150,6 +172,17 @@ void processAdrAction(String adrAction, String adrValue1, String adrValue2) {
   } else if (adrAction == "manualset") {
     manualSetServoRotation(adrValue1);
   }
+}
+
+String processAdrActionWithResponse(String adrAction, String adrValue1, String adrValue2) {
+  debugPrintln("Processing action with response " + adrAction);
+  String processResponse = "";
+  if (adrAction == "status") {
+    processResponse = checkStatus();
+  } else if (adrAction == "readTemp") {
+    processResponse = readTemp();
+  }
+  return processResponse;
 }
 
 void feedMyPet() {
@@ -186,4 +219,24 @@ void resetServoRotation() {
 
 void manualSetServoRotation(String adrValue) {
   Serial.println("cmd|manualset|"+adrValue);
+}
+
+String checkStatus() {
+  String esp8266 = "esp8266 status OK | ";
+  checkAtMega328Status();
+  String atmega328 = "atmega328 "+readFromSerialWithTimeout();
+  return esp8266 + atmega328;
+}
+
+String readTemp() {
+  Serial.println("cmd|temp");
+  return readFromSerialWithTimeout();
+}
+
+void checkAtMega328Status() {
+  Serial.println("cmd|status");
+}
+
+String readFromSerialWithTimeout() {
+  return Serial.readStringUntil('\r\n');
 }
