@@ -1,0 +1,16 @@
+Run docker-compose up to start renewal
+Full chain+private key location:
+| /etc/letsencrypt/archive/msdy.xyz
+
+Copy Full chain to this folder in server:
+/etc/ssl/certs/
+
+Copy private key to this folder in server:
+/etc/ssl/private/
+
+Modify ssl config used by nginx:
+/etc/nginx/ssl.conf
+
+Restart nginx
+
+Delete old full chain+private keys

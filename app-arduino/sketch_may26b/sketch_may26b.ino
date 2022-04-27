@@ -12,7 +12,7 @@ WiFiServer server(8080);
 // Current time
 unsigned long currentTime = millis();
 // Previous time
-unsigned long previousTime = 0; 
+unsigned long previousTime = 0;
 // Define timeout time in milliseconds (example: 2000ms = 2s)
 const long timeoutTime = 2000;
 
@@ -28,21 +28,21 @@ IPAddress secondaryDNS(8, 8, 4, 4); //optional
 const int SERVO_MAX_FEED_ROTATION = 3;
 
 void debugPrintln(String str) {
-#ifdef APP_DEBUG_MODE      
-    Serial.println(str);
-#endif    
+#ifdef APP_DEBUG_MODE
+  Serial.println(str);
+#endif
 }
 
 void debugPrint(String str) {
-#ifdef APP_DEBUG_MODE      
-    Serial.print(str);
-#endif    
+#ifdef APP_DEBUG_MODE
+  Serial.print(str);
+#endif
 }
 
 void debugPrint(char c) {
-#ifdef APP_DEBUG_MODE      
-    Serial.print(c);
-#endif    
+#ifdef APP_DEBUG_MODE
+  Serial.print(c);
+#endif
 }
 
 void setup() {
@@ -53,13 +53,13 @@ void setup() {
   // Configures static IP address
   if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
     debugPrintln("STA Failed to configure");
-  }  
+  }
   debugPrintln("Connecting....");
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) 
+  while (WiFi.status() != WL_CONNECTED)
   {
-     delay(500);
-     debugPrint("*");
+    delay(500);
+    debugPrint("*");
   }
   debugPrintln("");
   debugPrintln("WiFi connection Successful");
@@ -81,7 +81,7 @@ void loop() {
     String adrValue2 = "";
     bool hasResponse = false;
     while (client.connected() && currentTime - previousTime <= timeoutTime) { // loop while the client's connected
-      currentTime = millis();         
+      currentTime = millis();
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
         debugPrint(c);                    // print it out the serial monitor
@@ -105,7 +105,7 @@ void loop() {
               } else if (currentLine.indexOf("ard_value2") != -1) {
                 if (currentLine.length() > 12) {
                   adrValue2 = currentLine.substring(12);
-                }                
+                }
               }
             }
             // if you got a newline, then clear currentLine
@@ -133,13 +133,13 @@ void loop() {
       client.println("Content-type:text/plain");
       client.println("Connection: close");
       client.println();
-      
+
       client.println("OK");
-      
+
       // The HTTP response ends with another blank line
       client.println();
     }
-    
+
     // Close the connection
     client.stop();
     debugPrintln("Client disconnected.");
@@ -218,13 +218,13 @@ void resetServoRotation() {
 }
 
 void manualSetServoRotation(String adrValue) {
-  Serial.println("cmd|manualset|"+adrValue);
+  Serial.println("cmd|manualset|" + adrValue);
 }
 
 String checkStatus() {
   String esp8266 = "esp8266 status OK | ";
   checkAtMega328Status();
-  String atmega328 = "atmega328 "+readFromSerialWithTimeout();
+  String atmega328 = "atmega328 " + readFromSerialWithTimeout();
   return esp8266 + atmega328;
 }
 
