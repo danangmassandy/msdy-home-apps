@@ -17,7 +17,7 @@ unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 
 // Set your Static IP address
-IPAddress local_IP(192, 168, 7, 77);
+IPAddress local_IP(192, 168, 7, 10);
 // Set your Gateway IP address
 IPAddress gateway(192, 168, 7, 1);
 
@@ -50,10 +50,10 @@ void setup() {
   // set reading timeout to 3s
   Serial.setTimeout(3000);
   delay(1000);
-  // Configures static IP address
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-    debugPrintln("STA Failed to configure");
-  }
+  // Configures static IP address --> 2022-05-13 static IP is not working using mi router
+  //if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  //  debugPrintln("STA Failed to configure");
+  //}
   debugPrintln("Connecting....");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
