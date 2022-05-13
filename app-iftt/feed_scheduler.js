@@ -1,16 +1,10 @@
 const http = require('http');
-const express = require('express');
-const app = express();
-app.use(express.json());
+// if (process.env.NODE_ENV !== 'production') {
+//     require('dotenv').config();
+//   }
 
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-  }
-
-const feederHost = process.env.FEEDER_HOST;
-const feederPort = process.env.FEEDER_PORT;
-// dummy port
-const port = 3100;
+const feederHost = '192.168.7.7';
+const feederPort = 8080;
 
 // auth okay, execute command
 let currentDate = new Date();
@@ -28,6 +22,5 @@ http.request(options, function(resFeeder) {
   console.log('FEEDER STATUS: ' + resFeeder.statusCode);
 }).end();
 
-app.listen(port, () => {
-    console.log(`Dummy Server running at port ${port}`);
-  });
+// command to run
+//  pm2 start feed_scheduler.js --no-autorestart --instances 1 --cron "0 */4 * * *"
